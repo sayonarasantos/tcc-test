@@ -1,0 +1,62 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mosquitto-pvc
+  labels:
+    app: mosquitto
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 200Mi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mosquitto-deployment
+  labels:
+    app: mosquitto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mosquitto
+  template:
+    metadata:
+      labels:
+        app: mosquitto
+    spec:
+      containers:
+      - name: mosquitto
+        image: eclipse-mosquitto:1.6.12
+        ports:
+        - name: mosquitto-port
+          containerPort: 1883
+        volumeMounts:
+        - name: mosquitto-volume
+          mountPath: /var/lib/mosquitto
+      volumes:
+        - name: mosquitto-volume
+          persistentVolumeClaim:
+            claimName: mosquitto-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mosquitto-service
+  labels:
+    app: mosquitto
+spec:
+  ports:
+    - port: 1883
+      nodePort: 30883
+      targetPort: mosquitto-port
+      protocol: TCP
+  selector:
+    app: mosquitto
+  type: NodePort
