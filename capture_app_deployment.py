@@ -3,33 +3,30 @@ import os
 import time
 
 
-DIR = "/home/cadmin/k3s_manifests"
-APP = "app"
+DIR = "/home/cadmin/manifests"
+APP = "mosquitto"
 
 
-def fprint(msg):
-    with open("log-app-deployment.txt", "a") as f:
-        f.write(f'{msg}\n')
+for replicas in [1, 5, 10, 20, 40]:
+    TIMES = list()
 
-
-for replicas in [1, 5, 10]
-    print(f"START LOOP WITH {replicas} replicas")
-
-    times_list = list()
-
-    for x in range(3):
-        print(f"START DEPLOYMENT")
+    for x in range(33):
         start_time = time.time()
-        os.system(f"kublectl create -f {DIR}/{APP}-{replicas}.yaml")
+        os.system(f"kubectl create -f {DIR}/{APP}.yaml")
+        os.system(f"kubectl scale deployment.v1.apps/{APP}-deployment --replicas={replicas}")
         end_time = time.time()
-        time_diff = end_time - start_time
-        fprint(f"{x} - Diff time: {time_diff}")
-        times_list.append(time_diff)
-        os.system(f"kublectl delete -f {DIR}/{APP}-{replicas}.yaml")
+
+        TIMES.append(end_time - start_time)
+
+        os.system(f"kubectl delete -f {DIR}/{APP}.yaml")
+
         time.sleep(2)
 
-    fprint(f"{replicas} - List diff: {times_list}")
-    print(f"{replicas} - List dif: {times_list}")
-
-    fprint(f"{replicas} - Time mean: {numpy.mean(times_list)/60}")
-    print(f"{replicas} - Time mean: {numpy.mean(times_list)/60}")
+    with open(f"log-{APP}-deployment-{replicas}.txt", "a") as f:
+        f.write(f"# replicas: {replicas}\n")
+        for elapsed in TIMES:
+            f.write(f"{elapsed}\n")
+        f.write(f"\n# entries: {len(TIMES)}\n")
+        f.write(f"\n# time mean: {numpy.mean(TIMES)/60}\n")
+        f.write(f"\n# time std: {numpy.std(TIMES)/60}\n")
+        f.write(f"\n# time var: {numpy.var(TIMES)/60}\n")

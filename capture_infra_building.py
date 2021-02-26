@@ -12,25 +12,26 @@ def fprint(msg):
         f.write(f'{msg}\n')
 
 
-for x in range(1):
-    print(f"START BUILDING")
+for x in range(2):
     start_time = time.time()
     os.system(f"ansible-playbook {DIR}/build_k3s.yml -i "
               f"{DIR}/inventory/cluster1/hosts.ini")
     os.system(f"ansible-playbook {DIR}/build_management.yml -i "
               f"{DIR}/inventory/cluster1/hosts.ini")
     end_time = time.time()
+
     time_diff = end_time - start_time
-    fprint(f"{x} - Diff time: {time_diff}")
+    fprint(f"{time_diff}")
     TIMES.append(time_diff)
+
     os.system(f"ansible-playbook {DIR}/reset_management.yml -i "
               f"{DIR}/inventory/cluster1/hosts.ini")
     os.system(f"ansible-playbook {DIR}/reset_k3s.yml -i "
               f"{DIR}/inventory/cluster1/hosts.ini")
-    time.sleep(2)
 
-fprint(f"List diff: {TIMES}")
-print(f"List diff: {TIMES}")
+    time.sleep(60)
 
-fprint(f"Time mean: {numpy.mean(TIMES)/60}")
-print(f"Time mean: {numpy.mean(TIMES)/60}")
+fprint(f"\n# entries: {len(TIMES)}")
+fprint(f"\n# time mean: {numpy.mean(TIMES)/60}")
+fprint(f"\n# time std: {numpy.std(TIMES)/60}")
+fprint(f"\n# time variance: {numpy.var(TIMES)/60}")
